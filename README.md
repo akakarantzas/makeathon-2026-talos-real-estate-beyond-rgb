@@ -1,4 +1,4 @@
-# Real Estate Beyond RGB — UniAI Makeathon 2026
+# Real Estate Beyond RGB — Makeathon 2026
 
 Using hyperspectral satellite imagery to decide which of 4 Greek land plots is the best €1M investment.
 
@@ -34,8 +34,8 @@ Instead of relying on traditional data, we analyze **EnMap hyperspectral satelli
 ## Setup
 
 ```bash
-git clone https://github.com/akakarantzas/makeathlon-real-estate-beyond-rgb.git
-cd makeathlon-real-estate-beyond-rgb
+git clone https://github.com/akakarantzas/makeathon-2026-talos-real-estate-beyond-rgb.git
+cd makeathon-2026-talos-real-estate-beyond-rgb
 pip install -r requirements.txt
 ```
 
