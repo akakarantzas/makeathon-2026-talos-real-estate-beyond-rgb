@@ -1,0 +1,19 @@
+# Environment and secrets
+.env
+*.env
+config/secrets.json
+
+# Python artifacts
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Large data files
+*.tif
+*.zip
+*.nc
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
