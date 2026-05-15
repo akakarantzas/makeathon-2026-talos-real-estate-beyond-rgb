@@ -17,3 +17,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local diagnostics
+gcm-diagnose.log
