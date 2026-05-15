@@ -12,6 +12,9 @@ __pycache__/
 *.tif
 *.zip
 *.nc
+data/**/*.tif
+data/**/*.TIF
+data/**/*.zip
 
 # OS files
 .DS_Store
