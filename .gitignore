@@ -8,6 +8,10 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
+# Frontend artifacts
+frontend/node_modules/
+frontend/dist/
+
 # Large data files
 *.tif
 *.zip
