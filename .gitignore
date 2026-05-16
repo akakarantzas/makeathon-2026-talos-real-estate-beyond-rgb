@@ -6,6 +6,7 @@ config/secrets.json
 # Python artifacts
 __pycache__/
 *.pyc
+.venv/
 .ipynb_checkpoints/
 
 # Frontend artifacts
