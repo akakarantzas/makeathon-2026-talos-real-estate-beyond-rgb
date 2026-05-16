@@ -10,31 +10,24 @@ frontend/      Vite React app
 report/        Reference assets and project visuals
 ```
 
-## Run
+## Run locally
 
-Install Python dependencies:
+From the repository root, install Python dependencies:
 
 ```powershell
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Start the API:
+In one terminal, start the API:
 
 ```powershell
 python -m uvicorn Backend_code.adapters.api:app --reload --port 8001
 ```
 
-Start the frontend:
+In a second terminal, start the frontend:
 
 ```powershell
 cd frontend
 npm install
 npm run dev
-```
-
-For deployment, set:
-
-```text
-CORS_ORIGINS=https://your-frontend-domain.example
-VITE_API_BASE_URL=https://your-backend-domain.example/api
 ```
