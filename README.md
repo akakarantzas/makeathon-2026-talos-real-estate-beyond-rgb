@@ -39,6 +39,22 @@ cd makeathon-2026-talos-real-estate-beyond-rgb
 pip install -r requirements.txt
 ```
 
+## Run the web app
+
+Start the Python API:
+
+```bash
+python -m uvicorn backend.main:app --reload --port 8001
+```
+
+Start the Vite frontend in a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
 ## Resources
 
 - [EnMap Downloader Tool](https://huggingface.co/spaces/DionysosKM/enmap-demo)
