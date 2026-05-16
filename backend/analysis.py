@@ -1,20 +1,19 @@
 from functools import lru_cache
-from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import numpy as np
 import rasterio
 from rasterio.enums import Resampling
 
+from .paths import BACKEND_CODE_DATA_DIR, get_data_path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR = BACKEND_CODE_DATA_DIR
 
 PLOTS = {
-    "Arkadia": DATA_DIR / "arkadia_20241024_mosaic",
-    "Arkadia 2": DATA_DIR / "arkadia2" / "arkadia2_20240531_mosaic",
-    "Magnisia": DATA_DIR / "magnisia_20241024_mosaic",
-    "Veroia": DATA_DIR / "Veroia-Veroia_20250821_mosaic",
+    "Arkadia": get_data_path("Arkadia"),
+    "Arkadia 2": get_data_path("Arkadia 2"),
+    "Magnisia": get_data_path("Magnisia"),
+    "Veroia": get_data_path("Veroia"),
 }
 
 TARGET_WAVELENGTHS_NM = {"green": 560, "red": 665, "nir": 842}
