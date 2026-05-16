@@ -31,3 +31,10 @@ cd frontend
 npm install
 npm run dev
 ```
+
+For deployment, set:
+
+```text
+CORS_ORIGINS=https://your-frontend-domain.example
+VITE_API_BASE_URL=https://your-backend-domain.example/api
+```
