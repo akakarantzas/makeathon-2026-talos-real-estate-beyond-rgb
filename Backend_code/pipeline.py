@@ -55,7 +55,7 @@ def fetch_external_data(lat, lon):
                 overpass_resp = requests.post(OVERPASS_API_URL, data={"data": overpass_query}, headers={"User-Agent": "BeyondRGB-Makeathon/1.0"}, timeout=5)
                 overpass_resp.raise_for_status()
                 overpass_data = overpass_resp.json()
-                
+
                 elements = overpass_data.get("elements", [])
                 if elements:
                     coast_lat = elements[0]["center"]["lat"]
@@ -72,14 +72,14 @@ def fetch_external_data(lat, lon):
                 else:
                     print("  [!] All Overpass retries exhausted. Defaulting distance to sea to 50km")
                     dist_to_sea = 50.0
-            
+
         return {
             "distance_to_sea_km": round(dist_to_sea, 2),
             "distance_to_high_voltage_grid_km": 12.5,  # Unspecified in APIs, using static placeholder
             "terrain_slope_degrees": 5.2,              # Unspecified in APIs, using static placeholder
             "fused_lst_celsius": float(lst_celsius) if lst_celsius is not None else None
         }
-        
+
     except requests.exceptions.Timeout:
         raise Exception("External API request timed out (>3 seconds). Halting Golden Run pipeline.")
     except requests.exceptions.RequestException as e:
@@ -120,7 +120,7 @@ def calculate_scores(use_case, spectral_metrics, ext_data, legal_factors):
     env_weight = weights["env_weight"]
     log_weight = weights["log_weight"]
     reg_weight = weights["reg_weight"]
-    
+
     heavy_cloud_cover = spectral_metrics.get("heavy_cloud_cover", False)
 
     # 1. Environmental Score
@@ -129,7 +129,7 @@ def calculate_scores(use_case, spectral_metrics, ext_data, legal_factors):
     else:
         ndvi = spectral_metrics.get("ndvi_vegetation_vigor") or 0.0
         soc = spectral_metrics.get("bare_soil_soc_index") or 0.0
-        # Simple heuristic scaling 
+        # Simple heuristic scaling
         env_score = int(max(0, min(100, (ndvi + soc) * 50)))
 
     # 2. Logistics Score (closer to sea = better score, purely an example metric logic)
@@ -145,7 +145,7 @@ def calculate_scores(use_case, spectral_metrics, ext_data, legal_factors):
     reg_score = max(0, reg_score)
 
     final_score = int((env_score * env_weight) + (log_score * log_weight) + (reg_score * reg_weight))
-    
+
     return final_score, env_score, log_score, reg_score
 
 def main():
@@ -181,21 +181,21 @@ def main():
 
         # 1. Process Spectral Data
         loc_dir = os.path.join(ENMAP_DATA_DIR, loc_name)
-        
+
         # Search for uppercase and lowercase variations
         search_pattern_upper = os.path.join(loc_dir, "*SPECTRAL_IMAGE*.TIF")
         search_pattern_lower = os.path.join(loc_dir, "*spectral_image*.tif")
-        
+
         matching_files = glob.glob(search_pattern_upper) + glob.glob(search_pattern_lower)
-        
+
         if not matching_files:
             raise FileNotFoundError(
                 f"Directory '{loc_dir}' is missing the unzipped EnMap spectral files. "
                 "Please ensure the *SPECTRAL_IMAGE*.TIF file is present."
             )
-            
+
         file_path = matching_files[0]
-        
+
         spectral_metrics = extract_spectral_metrics(file_path, lat, lon)
         print(f"  [x] EnMap spectral data extracted from {file_path}.")
 
@@ -205,7 +205,7 @@ def main():
 
         # 3. Get Legal Risk Factors
         legal_factors = get_legal_risk_factors(loc_name)
-        
+
         # 4. Calculate Scores
         overall_score, env_score, log_score, reg_score = calculate_scores(use_case, spectral_metrics, ext_data, legal_factors)
 

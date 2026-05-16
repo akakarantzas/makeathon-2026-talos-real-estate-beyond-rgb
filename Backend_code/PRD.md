@@ -4,7 +4,7 @@
 **Output:** A single static JSON file (`api_response.json`)
 
 ## 1. Executive Summary
-The objective of this backend service is to process Level-2A EnMap hyperspectral satellite imagery (`.tif`), fuse it with external macroeconomic and infrastructural parameters, and calculate a dynamic "Investment Viability Score" for four 250,000 m² land plots in Greece. 
+The objective of this backend service is to process Level-2A EnMap hyperspectral satellite imagery (`.tif`), fuse it with external macroeconomic and infrastructural parameters, and calculate a dynamic "Investment Viability Score" for four 250,000 m² land plots in Greece.
 
 **Critical Architecture Directive:** We are utilizing a **"Golden Run"** strategy. This backend will NOT run live during the presentation. It is a pre-computation pipeline designed to be executed via terminal prior to the pitch. It will crunch all data, call all APIs, and output a strict `api_response.json` file. The frontend UI will be completely decoupled and will solely read this generated JSON file.
 

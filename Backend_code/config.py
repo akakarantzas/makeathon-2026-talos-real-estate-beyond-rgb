@@ -7,7 +7,7 @@ WEIGHT_MATRIX = {
     "Agrivoltaics": {"env_weight": 0.30, "log_weight": 0.30, "reg_weight": 0.40},
     "Logistics": {"env_weight": 0.10, "log_weight": 0.60, "reg_weight": 0.30},
     "Mineral Extraction": {"env_weight": 0.40, "log_weight": 0.30, "reg_weight": 0.30},
-    
+
     # New High-Value Scenarios (MCDA Normalized)
     "Industrial Greenhouses": {"env_weight": 0.50, "log_weight": 0.30, "reg_weight": 0.20},
     "Data Center": {"env_weight": 0.10, "log_weight": 0.70, "reg_weight": 0.20},
