@@ -6,6 +6,7 @@ config/secrets.json
 # Python artifacts
 __pycache__/
 *.pyc
+.venv/
 .ipynb_checkpoints/
 
 # Frontend artifacts
@@ -14,6 +15,8 @@ frontend/dist/
 
 # Large data files
 *.tif
+!Backend_code/data/**/*.TIF
+!Backend_code/data/**/*.tif
 *.zip
 *.nc
 

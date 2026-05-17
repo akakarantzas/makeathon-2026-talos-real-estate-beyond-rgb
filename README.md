@@ -5,27 +5,32 @@ Terrasset is a hyperspectral land screening app for comparing four Greek plots u
 ## Structure
 
 ```text
-backend/   FastAPI analysis API
-frontend/  Vite React app
-data/      EnMap mosaics for the four plots
-report/    Reference assets and project visuals
+Backend_code/  Backend implementation and canonical EnMap data
+frontend/      Vite React app
+report/        Reference assets and project visuals
 ```
 
-## Run
+## Quick start on Windows
 
-Install Python dependencies:
+1. Double-click `setup.bat` once.
+2. Double-click `run_app.bat`.
+3. Terrasset opens automatically in your browser.
+
+## Manual local run
+
+From the repository root, install Python dependencies:
 
 ```powershell
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Start the API:
+In one terminal, start the API:
 
 ```powershell
-python -m uvicorn backend.main:app --reload --port 8001
+python -m uvicorn Backend_code.adapters.api:app --reload --port 8001
 ```
 
-Start the frontend:
+In a second terminal, start the frontend:
 
 ```powershell
 cd frontend
