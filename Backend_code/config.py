@@ -1,4 +1,4 @@
-from Backend_code.paths import DATA_DIR
+from Backend_code.paths import BACKEND_DIR, DATA_DIR
 
 # 1. Dynamic Scoring Matrix
 WEIGHT_MATRIX = {
@@ -33,7 +33,7 @@ ENMAP_TARGET_WAVELENGTHS = {
 # 4. Other Static Global Variables
 
 # Default Paths
-OUTPUT_JSON_FILENAME = "api_response.json"
+OUTPUT_JSON_FILENAME = BACKEND_DIR / "api_response.json"
 ENMAP_DATA_DIR = DATA_DIR  # Canonical path for EnMap .tif files
 
 # API Base URLs

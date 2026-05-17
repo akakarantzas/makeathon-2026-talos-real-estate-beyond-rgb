@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .analysis_adapter import PLOTS, list_plots, load_scene
+from .analysis_adapter import PLOTS, list_plots, load_pipeline_payload, load_scene
 
 
 DEFAULT_CORS_ORIGINS = ["http://localhost:5174", "http://127.0.0.1:5174"]
@@ -29,6 +29,11 @@ app.add_middleware(
 @app.get("/api/plots")
 def get_plots() -> list[dict]:
     return list_plots()
+
+
+@app.get("/api/meta")
+def get_meta() -> dict:
+    return load_pipeline_payload().get("project_meta", {})
 
 
 @app.get("/api/plots/{plot_name}")

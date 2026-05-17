@@ -1,11 +1,12 @@
 from functools import lru_cache
+import json
 import xml.etree.ElementTree as ET
 
 import numpy as np
 import rasterio
 from rasterio.enums import Resampling
 
-from Backend_code.paths import DATA_DIR, get_data_path, require_data_path
+from Backend_code.paths import BACKEND_DIR, DATA_DIR, get_data_path, require_data_path
 
 PLOTS = {
     "Arkadia": get_data_path("Arkadia"),
@@ -15,6 +16,20 @@ PLOTS = {
 }
 
 TARGET_WAVELENGTHS_NM = {"green": 560, "red": 665, "nir": 842}
+PIPELINE_RESPONSE_PATH = BACKEND_DIR / "api_response.json"
+
+
+@lru_cache(maxsize=1)
+def load_pipeline_payload() -> dict:
+    if not PIPELINE_RESPONSE_PATH.exists():
+        raise FileNotFoundError(f"Pipeline response file does not exist: {PIPELINE_RESPONSE_PATH}")
+    with PIPELINE_RESPONSE_PATH.open(encoding="utf-8") as response_file:
+        return json.load(response_file)
+
+
+def load_pipeline_results() -> dict[str, dict]:
+    payload = load_pipeline_payload()
+    return {location["name"]: location for location in payload.get("locations", [])}
 
 
 def safe_index(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
@@ -90,6 +105,7 @@ def load_scene(plot_name: str) -> dict:
         float(np.nanmean(ndvi)),
         float(np.nanmean(ndwi)),
     )
+    pipeline_result = load_pipeline_results().get(plot_name, {})
 
     return {
         "name": plot_name,
@@ -98,8 +114,15 @@ def load_scene(plot_name: str) -> dict:
         "mean_spectrum": np.nan_to_num(mean_spectrum, nan=0.0).tolist(),
         "ndvi": float(np.nanmean(ndvi)),
         "ndwi": float(np.nanmean(ndwi)),
-        "score": score,
+        "score": pipeline_result.get("overall_viability_score", score),
+        "spectral_score": score,
         "recommendation": recommendation,
+        "coordinates": pipeline_result.get("coordinates"),
+        "score_breakdown": pipeline_result.get("score_breakdown"),
+        "pipeline_metrics": pipeline_result.get("enmap_metrics_fused"),
+        "macro_infrastructure": pipeline_result.get("macro_infrastructure"),
+        "legal_and_risk_factors": pipeline_result.get("legal_and_risk_factors"),
+        "ai_summary": pipeline_result.get("ai_summary"),
     }
 
 

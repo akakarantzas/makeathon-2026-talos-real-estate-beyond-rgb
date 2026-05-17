@@ -4,21 +4,30 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8001/api
 
 function usePlots() {
   const [plots, setPlots] = useState([])
+  const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`${API_BASE}/plots`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load plot data')
-        return res.json()
+    Promise.all([
+      fetch(`${API_BASE}/plots`),
+      fetch(`${API_BASE}/meta`),
+    ])
+      .then(async ([plotsResponse, metaResponse]) => {
+        if (!plotsResponse.ok) throw new Error('Failed to load plot data')
+        if (!metaResponse.ok) throw new Error('Failed to load model metadata')
+        const [plotsPayload, metaPayload] = await Promise.all([
+          plotsResponse.json(),
+          metaResponse.json(),
+        ])
+        setPlots(plotsPayload)
+        setMeta(metaPayload)
       })
-      .then(setPlots)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
 
-  return { plots, loading, error }
+  return { plots, meta, loading, error }
 }
 
 function AppNav({ page, onNavigate, variant = 'default' }) {
@@ -46,9 +55,9 @@ function ScoreCard({ plot, rank }) {
       <span className="rank-pill">{rank} Ranked</span>
       <h3>{plot.name}</h3>
       <strong>{plot.score}/100</strong>
-      <p>NDVI <b>{plot.ndvi.toFixed(3)}</b></p>
-      <p>NDWI <b>{plot.ndwi.toFixed(3)}</b></p>
-      <small>{plot.recommendation}</small>
+      <p>Environmental <b>{plot.score_breakdown.environmental_score}</b></p>
+      <p>Regulatory <b>{plot.score_breakdown.regulatory_score}</b></p>
+      <small>{plot.ai_summary}</small>
     </article>
   )
 }
@@ -72,8 +81,10 @@ function Spectrum({ plot }) {
   )
 }
 
-function Home({ ranked, onNavigate }) {
+function Home({ ranked, meta, onNavigate }) {
   const best = ranked[0]
+  const updatedAt = formatUpdatedAt(meta.last_updated)
+  const weights = meta.applied_weights
   return (
     <>
       <section className="home-hero">
@@ -87,7 +98,7 @@ function Home({ ranked, onNavigate }) {
             <br />
             value the asset.
           </h1>
-          <p>Hyperspectral analysis for comparing Greek land plots beyond what RGB imagery can show.</p>
+          <p>{meta.active_use_case} screening built from hyperspectral, logistics, and regulatory signals.</p>
           <div>
             <button onClick={() => onNavigate('dashboard')}>Open dashboard</button>
             <button className="secondary" onClick={() => onNavigate('compare')}>Compare plots</button>
@@ -100,12 +111,12 @@ function Home({ ranked, onNavigate }) {
           <div>
             <span>Current best candidate</span>
             <h2>{best.name}</h2>
-            <p>{best.recommendation}</p>
+            <p>{best.ai_summary}</p>
           </div>
           <div className="featured-metrics">
-            <Metric label="Score" value={`${best.score}/100`} />
-            <Metric label="NDVI" value={best.ndvi.toFixed(3)} />
-            <Metric label="NDWI" value={best.ndwi.toFixed(3)} />
+            <Metric label="Viability" value={`${best.score}/100`} />
+            <Metric label="Regulatory" value={`${best.score_breakdown.regulatory_score}/100`} />
+            <Metric label="Distance to sea" value={`${best.macro_infrastructure.distance_to_sea_km} km`} />
           </div>
         </div>
       </section>
@@ -137,9 +148,9 @@ function Home({ ranked, onNavigate }) {
 
       <section className="section-band">
         <div className="grid four stats-grid">
-          <Metric label="Plots" value="4" />
-          <Metric label="Bands" value="224" />
-          <Metric label="Indices" value="2" />
+          <Metric label="Use case" value={meta.active_use_case} />
+          <Metric label="Last updated" value={updatedAt} />
+          <Metric label="Weighting" value={`${weights.environmental_weight * 100}/${weights.logistics_weight * 100}/${weights.regulatory_weight * 100}`} />
           <Metric label="Top candidate" value={best.name} />
         </div>
       </section>
@@ -166,13 +177,19 @@ function Dashboard({ plots }) {
         />
       </section>
       <section className="grid three metrics">
-        <Metric label="Mean NDVI" value={selected.ndvi.toFixed(3)} />
-        <Metric label="Mean NDWI" value={selected.ndwi.toFixed(3)} />
-        <Metric label="Investment score" value={`${selected.score}/100`} />
+        <Metric label="Viability score" value={`${selected.score}/100`} />
+        <Metric label="Regulatory score" value={`${selected.score_breakdown.regulatory_score}/100`} />
+        <Metric label="Distance to sea" value={`${selected.macro_infrastructure.distance_to_sea_km} km`} />
       </section>
       <section className="winner-card">
-        <small>{selected.name} recommendation</small>
-        <h2>{selected.recommendation}</h2>
+        <small>{selected.name} investment signal</small>
+        <h2>{selected.ai_summary}</h2>
+      </section>
+      <section className="grid four decision-grid">
+        <Metric label="NDVI" value={formatDecimal(selected.pipeline_metrics.ndvi_vegetation_vigor)} />
+        <Metric label="NDWI" value={formatDecimal(selected.pipeline_metrics.ndwi_water_retention)} />
+        <Metric label="Climate risk" value={selected.legal_and_risk_factors.climate_risk_flag} />
+        <Metric label="Zoning" value={selected.legal_and_risk_factors.zoning_restriction} />
       </section>
       <h2>Mean spectral signature</h2>
       <Spectrum plot={selected} />
@@ -216,14 +233,64 @@ function Compare({ plots }) {
         <span>VS</span>
         <ScoreCard plot={right} rank="B" />
       </section>
-      <StatRow label="Investment score" left={left.score} right={right.score} format={(v) => `${v}/100`} />
-      <StatRow label="NDVI" left={left.ndvi} right={right.ndvi} format={(v) => v.toFixed(3)} shift />
-      <StatRow label="NDWI" left={left.ndwi} right={right.ndwi} format={(v) => v.toFixed(3)} shift />
       <section className="winner-card">
         <small>Head-to-head prediction</small>
         <h2>{winner.name}</h2>
         <p>Recommended over the selected alternative.</p>
       </section>
+      <ComparisonSection title="Score breakdown">
+        <StatRow label="Overall viability" left={left.score} right={right.score} format={(v) => `${v}/100`} />
+        <StatRow label="Environmental score" left={left.score_breakdown.environmental_score} right={right.score_breakdown.environmental_score} format={(v) => `${v}/100`} />
+        <StatRow label="Logistics score" left={left.score_breakdown.logistics_score} right={right.score_breakdown.logistics_score} format={(v) => `${v}/100`} />
+        <StatRow label="Regulatory score" left={left.score_breakdown.regulatory_score} right={right.score_breakdown.regulatory_score} format={(v) => `${v}/100`} />
+      </ComparisonSection>
+      <ComparisonSection title="Environmental evidence">
+        <ComparisonTable
+          left={left}
+          right={right}
+          rows={[
+            ['NDVI vegetation vigor', (plot) => formatDecimal(plot.pipeline_metrics.ndvi_vegetation_vigor)],
+            ['NDWI water retention', (plot) => formatDecimal(plot.pipeline_metrics.ndwi_water_retention)],
+            ['Bare soil SOC index', (plot) => formatDecimal(plot.pipeline_metrics.bare_soil_soc_index)],
+            ['Fused LST', (plot) => `${plot.pipeline_metrics.fused_lst_celsius.toFixed(1)} °C`],
+            ['Cloud mask applied', (plot) => formatBoolean(plot.pipeline_metrics.cloud_mask_applied)],
+          ]}
+        />
+      </ComparisonSection>
+      <ComparisonSection title="Macro infrastructure">
+        <ComparisonTable
+          left={left}
+          right={right}
+          rows={[
+            ['Distance to sea', (plot) => `${plot.macro_infrastructure.distance_to_sea_km} km`],
+            ['Distance to high-voltage grid', (plot) => `${plot.macro_infrastructure.distance_to_high_voltage_grid_km} km`],
+            ['Terrain slope', (plot) => `${plot.macro_infrastructure.terrain_slope_degrees}°`],
+          ]}
+        />
+      </ComparisonSection>
+      <ComparisonSection title="Legal and risk factors">
+        <ComparisonTable
+          left={left}
+          right={right}
+          rows={[
+            ['Cadastral clearance', (plot) => plot.legal_and_risk_factors.cadastral_clearance_status],
+            ['Zoning restriction', (plot) => plot.legal_and_risk_factors.zoning_restriction],
+            ['Climate risk', (plot) => plot.legal_and_risk_factors.climate_risk_flag],
+            ['Borehole permit difficulty', (plot) => plot.legal_and_risk_factors.borehole_permit_difficulty],
+          ]}
+        />
+      </ComparisonSection>
+      <ComparisonSection title="Location context">
+        <ComparisonTable
+          left={left}
+          right={right}
+          rows={[
+            ['Latitude', (plot) => plot.coordinates.lat.toFixed(6)],
+            ['Longitude', (plot) => plot.coordinates.lon.toFixed(6)],
+            ['Model summary', (plot) => plot.ai_summary],
+          ]}
+        />
+      </ComparisonSection>
     </>
   )
 }
@@ -255,6 +322,34 @@ function Hero({ title, copy }) {
 
 function Metric({ label, value }) {
   return <article className="metric"><small>{label}</small><strong>{value}</strong></article>
+}
+
+function ComparisonSection({ title, children }) {
+  return (
+    <section className="comparison-section">
+      <h2>{title}</h2>
+      {children}
+    </section>
+  )
+}
+
+function ComparisonTable({ left, right, rows }) {
+  return (
+    <div className="comparison-table">
+      <div className="comparison-head">
+        <span>Metric</span>
+        <strong>{left.name}</strong>
+        <strong>{right.name}</strong>
+      </div>
+      {rows.map(([label, render]) => (
+        <div className="comparison-row" key={label}>
+          <span>{label}</span>
+          <b>{render(left)}</b>
+          <b>{render(right)}</b>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function SectionHeading({ eyebrow, title }) {
@@ -317,8 +412,25 @@ function StatRow({ label, left, right, format, shift = false }) {
   )
 }
 
+function formatDecimal(value) {
+  return value == null ? '—' : value.toFixed(3)
+}
+
+function formatBoolean(value) {
+  return value ? 'Yes' : 'No'
+}
+
+function formatUpdatedAt(value) {
+  if (!value) return '—'
+  return new Date(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export default function App() {
-  const { plots, loading, error } = usePlots()
+  const { plots, meta, loading, error } = usePlots()
   const [page, setPage] = useState('home')
   const ranked = useMemo(() => [...plots].sort((a, b) => b.score - a.score), [plots])
   if (loading) return <main>Loading…</main>
@@ -328,7 +440,7 @@ export default function App() {
       {page === 'home' ? (
         <div className="home-page">
           <AppNav page={page} onNavigate={setPage} variant="hero" />
-          <Home ranked={ranked} onNavigate={setPage} />
+          <Home ranked={ranked} meta={meta} onNavigate={setPage} />
         </div>
       ) : (
         <main>

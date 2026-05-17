@@ -10,7 +10,13 @@ frontend/      Vite React app
 report/        Reference assets and project visuals
 ```
 
-## Run locally
+## Quick start on Windows
+
+1. Double-click `setup.bat` once.
+2. Double-click `run_app.bat`.
+3. Terrasset opens automatically in your browser.
+
+## Manual local run
 
 From the repository root, install Python dependencies:
 
