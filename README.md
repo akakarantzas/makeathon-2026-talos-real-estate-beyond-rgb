@@ -1,6 +1,6 @@
 # Terrasset
 
-Terrasset is a hyperspectral land screening app for comparing four Greek plots using EnMap data, NDVI, NDWI, and a simple investment score.
+Terrasset is an analytics platform that evaluates land viability by fusing EnMAP hyperspectral satellite data with local infrastructural and macroeconomic risk factors to calculate dynamic investment viability scores.
 
 ## Structure
 
